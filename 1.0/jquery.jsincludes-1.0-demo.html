@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- encoding: utf-8 -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+  <title>jQuery.fn.jsincludes Demo</title>
+
+  <style type="text/css">
+    
+  </style>
+
+  <script src="http://codecentre.eplica.is/jq/jquery-1.5.js"></script>
+  <script src="http://codecentre.eplica.is/jq/eutils-1.1.js"></script><!-- $.fn.setFocus() - optional depenedency -->
+  <script src="../../virtualbrowser/1.1/jquery.virtualbrowser-1.1.js"></script>
+  <script src="jquery.jsincludes-1.0.js"></script>
+
+</head>
+<body>
+
+  <h1>jQuery.fn.jsincludes Demo</h1>
+
+  <a class="js-include" href="demo/page1.html">See Page 1</a>
+
+  <p class="js-include lazyload">Click to <a href="demo/page2.html">See Page 2</a></p>
+
+  <p class="js-include">You can:
+    <a href="demo/page3.html">See page 3</a> and
+    <a href="demo/page3.html">See page 3</a> - also
+    <a class="no-include" href="demo/noload.html">the Noload page</a>
+  </p>
+
+
+
+  <script>
+    jQuery('.js-include')
+        .jsincludes({
+            //lazyLoad:     '.lazyload',
+            //noIncl:       '.no-include',
+            //loadingClass: 'loading',
+            //disengage:    true,          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour
+            onLoaded: function (e, request) {
+                request.resultDOM.css('border', '1px solid blue'); 
+              }
+          });
+  </script>
+</body>
+</html>
