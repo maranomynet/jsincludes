@@ -8,13 +8,19 @@
   <title>jQuery.fn.jsincludes Demo</title>
 
   <style type="text/css">
-    
+    .js-include {
+      display: block;
+      border: 1px solid red;
+    }
+    .js-include.jsi-loading {
+      border: 1px solid green;
+    }
   </style>
 
   <script src="http://codecentre.eplica.is/jq/jquery-1.5.js"></script>
   <script src="http://codecentre.eplica.is/jq/eutils-1.1.js"></script><!-- $.fn.setFocus() - optional depenedency -->
   <script src="../../virtualbrowser/1.1/jquery.virtualbrowser-1.1.js"></script>
-  <script src="jquery.jsincludes-1.0.js"></script>
+  <script src="jquery.jsincludes-1.0-min.js"></script>
 
 </head>
 <body>
@@ -25,11 +31,15 @@
 
   <p class="js-include lazyload">Click to <a href="demo/page2.html">See Page 2</a></p>
 
+  <p style="height:1000px;"></p>
+
   <p class="js-include">You can:
-    <a href="demo/page3.html">See page 3</a> and
-    <a href="demo/page3.html">See page 3</a> - also
+    <a href="demo/page3.html#section1">See page 3 (section 1)</a> and
+    <a href="demo/page3.html" data-selectors=".section2">See page 3 (section 2)</a> - also
     <a class="no-include" href="demo/noload.html">the Noload page</a>
   </p>
+
+  <a class="js-include forceload" href="demo/page1.html">See Page 1</a>
 
 
 
@@ -40,7 +50,9 @@
             //noIncl:       '.no-include',
             //loadingClass: 'loading',
             //disengage:    true,          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour
+            delayUnseen: true,
             onLoaded: function (e, request) {
+                ;;;window.console&&console.log( "Loaded: ", request.elm );
                 request.resultDOM.css('border', '1px solid blue'); 
               }
           });

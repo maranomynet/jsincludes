@@ -18,9 +18,10 @@
 //
 (function($){
 
-  var _jsincludes      = 'jsincludes',
+  var _jsincludes     = 'jsincludes',
       _virtualBrowser = 'virtualBrowser',
 
+      // on 'VBerror' remove the dummy virtualbrowser element and "disengage"
       _errorHandler = function (e, request) {
           if ( request.isFirst )
           {
@@ -30,6 +31,8 @@
           }
         },
 
+      // on 'VBloaded' (unless !cfg.disengage) we immediately move the .resultDOM
+      // to outside the temporary virtualBrowser body element, and detach it form the DOM
       _loadedHandler = function (e, request) {
           var body = $(this),
               cfg = body.data(_virtualBrowser).cfg,
@@ -37,9 +40,9 @@
           if ( cfg.disengage )
           {
             body
-                .before( dom )
+                .before( dom ) // NOTE: the VBloaded handlers MUST NOT rely on request.resultDOM being contained within the body
                 .detach();
-            // cleanup purge body from memory
+            // cleanup purge body from memory - when all VBloaded handlers have finished running.
             setTimeout(function(){  $('<div/>').append( body ).empty(); }, 999);
           }
           if ( cfg.setFocus  &&  $.setFocus )
@@ -49,7 +52,7 @@
           }
         },
 
-  
+
       loadLink = function (clickEv) {
           var inclElm = $(this),
               data = inclElm.data(_jsincludes),
@@ -57,7 +60,7 @@
               cfg = data.cfg,
               idSelector = link[0].href.split('#')[1];
 
-          cfg.selectors = (idSelector  &&  '#'+idSelector)  ||
+          cfg.selector = (idSelector  &&  '#'+idSelector)  ||
                           link.attr('data-selectors')  ||
                           cfg.selector;
           // set focus on the first focusable element within the injected DOM
@@ -77,81 +80,141 @@
         },
 
 
-      _jsIncl = $.fn[_jsincludes] = function ( config ) {
-          var config = $.extend(new _defaultConfig, _defaultConfig, config);
+      refreshTimeout,
 
-          this.each(function () {
-              var inclElm = $(this);
-              if ( !inclElm.data( _jsincludes ) ) // prevent unwanted reruns
+      refreshUnseen = function (e) {
+          clearTimeout( refreshTimeout ); 
+          refreshTimeout = setTimeout(function(){ loadSeenLinks(); }, _jsIncl.refresh);
+        },
+
+      win,
+      lastWinBottom,
+      unseenElms = [],
+      loadSeenLinks = function ( batch ) {
+          batch = batch || [];
+          win = win || $(window);
+          var winBottom = win.scrollTop() + win.height();
+          if ( batch.length  ||  winBottom != lastWinBottom )
+          {
+            unseenElms.push.apply( unseenElms, batch );
+            var i = unseenElms.length,
+                stopAt = i - (batch.length || i),
+                elm,
+                seenElms = [];
+            while ( i-- > stopAt )
+            {
+              elm = $(unseenElms[i]);
+              if ( elm.offset().top  <  winBottom + (elm.data( _jsincludes ).cfg.unseenBuffer||0) )
               {
-                var foundLinks =  inclElm.is('a') ?
-                                      inclElm:
-                                      inclElm.find('a').not( config.noIncl );
-
-                // loop over the `foundLinks` in each `inclElm`
-                foundLinks.each(function () {
-                    var link =  $(this),
-                        // elm will contain the `inclElm` relative to this `link` (in certain circumstances this will change)
-                        elm = inclElm;
-
-                    if ( foundLinks.length > 1 )
-                    {
-                      // for `inclElm`s that contain more than one link
-                      // move them outside the original `inclElm`
-                      link
-                          .insertBefore( elm )
-                          // copying the `inclElm`'s className
-                          .addClass( elm.attr('class') );
-                      // and setting the link itself as standin `inclElm`.
-                      elm = link;
-                    }
-
-                    // store useful data for easy access
-                    elm.data( _jsincludes, {
-                        link: link,
-                        cfg:  config
-                      });
-
-                    if ( elm.is( config.lazyLoad||'' ) )
-                    {
-                      // for lazyloaded elements, set `loadLink` as a click handler
-                      elm.bind('click', loadLink);
-                    }
-                    else
-                    {
-                      // otherwise just load them straight away.
-                      loadLink.call( elm[0] );
-                    }
-
-                  });
-
-                // if `inclElm` contained multiple links, it has now been emptied out
-                // and should thus be discarded.
-                if ( foundLinks.length > 1 )
-                {
-                  inclElm.remove();
-                }
+                loadLink.call( elm[0] );
+                unseenElms.splice(i,1);
               }
-            });
+            }
+            lastWinBottom = winBottom;
+          }
+        },
 
+
+      lastcfg,
+
+      _jsIncl = $.fn[_jsincludes] = function ( cfg ) {
+          if ( cfg == 'refresh' )
+          {
+            refreshUnseen();
+          }
+          else
+          {
+            // array for storing `inclElm`s that need loading straight away
+            var elmBatch = [];
+
+            this.each(function () {
+                var inclElm = $(this),
+                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg);
+                if ( !inclElm.data( _jsincludes ) ) // prevent unwanted reruns
+                {
+                  var foundLinks =  inclElm.is('a') ?
+                                        inclElm:
+                                        inclElm.find('a').not( config.noIncl );
+                  // loop over the `foundLinks` in each `inclElm`
+                  foundLinks.each(function () {
+                          link =  $(this),
+                          // elm will contain the `inclElm` relative to this `link` (in certain circumstances this will change)
+                          elm = inclElm;
+
+                      if ( foundLinks.length > 1 )
+                      {
+                        config = $.extend(new _defaultConfig(), _defaultConfig, cfg);
+                        // for `inclElm`s that contain more than one link
+                        // move them outside the original `inclElm`
+                        link
+                            .insertBefore( elm )
+                            // copying the `inclElm`'s className
+                            .addClass( elm.attr('class') );
+                        // and setting the link itself as standin `inclElm`.
+                        elm = link;
+                      }
+
+                      // store useful data for easy access
+                      elm.data( _jsincludes, {
+                          link: link,
+                          cfg:  config
+                        });
+
+                      if ( elm.is( config.lazyLoad||'' ) )
+                      {
+                        // for lazyloaded elements, set `loadLink` as a click handler
+                        elm.bind('click', loadLink);
+                      }
+                      else if ( !config.delayUnseen  ||  elm.is( config.forceLoad ) )
+                      {
+                        loadLink.call( elm[0] );
+                      }
+                      else
+                      {
+                        elmBatch.push( elm[0] );
+                      }
+
+                    });
+
+                  // if `inclElm` contained multiple links, it has now been emptied out
+                  // and should thus be discarded.
+                  if ( foundLinks.length > 1 )
+                  {
+                    inclElm.remove();
+                  }
+                }
+              });
+            if ( elmBatch.length )
+            {
+              loadSeenLinks( elmBatch );
+              $(window).bind('resize scroll', refreshUnseen);
+            }
+          }
           return this;
         },
 
-      // Note: the plugin uses the _defaultConfig private variable,
-      // so overwriting/replacing the public _jsIncl.config will not work.
+      // Note: the plugin uses the `_defaultConfig` private variable,
+      // so overwriting/replacing the public `_jsIncl.config` will not work.
       // Extending is the only way to go.
       _defaultConfig = _jsIncl.config = function(){};
 
 
+  // global "live" config. extend this object to change default config values retroactively 
   _defaultConfig.prototype = {
-      // global "live" config. extend this object to change default config values retroactively 
-      lazyLoad:     '.lazyload',
-      noIncl:       '.no-include',
-      loadingClass: 'loading',
+      lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked.
+      noIncl:       '.no-include', // ignore elemetns that match this selector - just throw them away.
+      loadingClass: 'jsi-loading', // className to add to elements while loading takes place.
+      //delayUnseen:  false,      // when set to true, links positioned below the fold
+      unseenBuffer: 100,          // pixel distance below the visible "fold" where elements stop being loaded when "delayUnseen == true"
+      forceLoad:    '.forceload',  // target elements that match this selector are loaded immediately, even when `config.delayUnseen == true`
+      //setFocus:     false,      // if non-falsy then attempt to use jQuery.fn.setFocus() to set the keyboard focus to the first focusable element.
       disengage:    true          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour 
       // ...for other options refer to the jQuery.fn.virtualBrowser() documentation
     };
-  // _jsIncl.config.foo = 'bar'; // <--- Extend jQuery.fn.jsIncludes.config to set config values for future invocations.
+  // _jsIncl.config.mySetting = 'myValue'; // <--- Extend jQuery.fn.jsIncludes.config to set config values for future invocations.
+
+
+  _jsIncl.refresh = 100;
 
 
 })(jQuery);
