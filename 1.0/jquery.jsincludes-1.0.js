@@ -125,7 +125,7 @@
           else
           {
             // array for storing `inclElm`s that need loading straight away
-            var elmBatch = [];
+            var delayedElms = [];
 
             this.each(function () {
                 var inclElm = $(this),
@@ -171,7 +171,7 @@
                       }
                       else
                       {
-                        elmBatch.push( elm[0] );
+                        delayedElms.push( elm[0] );
                       }
 
                     });
@@ -184,9 +184,9 @@
                   }
                 }
               });
-            if ( elmBatch.length )
+            if ( delayedElms.length )
             {
-              loadSeenLinks( elmBatch );
+              loadSeenLinks( delayedElms );
               $(window).bind('resize scroll', refreshUnseen);
             }
           }
