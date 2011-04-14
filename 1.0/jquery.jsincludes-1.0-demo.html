@@ -20,7 +20,7 @@
   <script src="http://codecentre.eplica.is/jq/jquery-1.5.js"></script>
   <script src="http://codecentre.eplica.is/jq/eutils-1.1.js"></script><!-- $.fn.setFocus() - optional depenedency -->
   <script src="../../virtualbrowser/1.1/jquery.virtualbrowser-1.1.js"></script>
-  <script src="jquery.jsincludes-1.0-min.js"></script>
+  <script src="jquery.jsincludes-1.0.js"></script>
 
 </head>
 <body>
@@ -44,18 +44,25 @@
 
 
   <script>
-    jQuery('.js-include')
-        .jsincludes({
-            //lazyLoad:     '.lazyload',
-            //noIncl:       '.no-include',
-            //loadingClass: 'loading',
-            //disengage:    true,          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour
-            delayUnseen: true,
-            onLoaded: function (e, request) {
-                ;;;window.console&&console.log( "Loaded: ", request.elm );
-                request.resultDOM.css('border', '1px solid blue'); 
-              }
+    var jsi = jQuery('.js-include')
+                .jsincludes({
+                    //lazyLoad:     '.lazyload',
+                    //noIncl:       '.no-include',
+                    //loadingClass: 'loading',
+                    //disengage:    true,          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour
+                    delayUnseen: true,
+                    onLoaded: function (e, request) {
+                        ;;;window.console&&console.log( "Loaded: ", request.elm );
+                        request.resultDOM.css('border', '1px solid blue'); 
+                      }
+                  });
+    jsi.vbBodies
+        .bind('VBloaded', function (e) {
+            ;;;window.console&&console.log( '-- Extra Loaded: ', $(this).data('jsincludes').elm );
           });
+
+    ;;;window.console&&console.log( 'vbBodies: ', jsi.vbBodies );
+    ;;;window.console&&console.log( 'lazyElms: ', jsi.lazyElms );
   </script>
 </body>
 </html>

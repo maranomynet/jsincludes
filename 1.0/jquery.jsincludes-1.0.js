@@ -37,6 +37,7 @@
           var body = $(this),
               cfg = body.data(_virtualBrowser).cfg,
               dom = request.resultDOM;
+
           if ( cfg.disengage )
           {
             body
@@ -56,6 +57,7 @@
       loadLink = function (clickEv) {
           var inclElm = $(this),
               data = inclElm.data(_jsincludes),
+              vbBody = data.vb,
               link = data.link,
               cfg = data.cfg,
               idSelector = link[0].href.split('#')[1];
@@ -70,12 +72,9 @@
             cfg.setFocus = 1;
           }
 
-          $('<div/>')
-              .bind('VBerror', _errorHandler)
-              .one('VBloaded', _loadedHandler)
+          data.vb
               .replaceAll( inclElm )
-              [_virtualBrowser]( cfg, link );
-
+              [_virtualBrowser]( 'load', link );
           clickEv  &&  clickEv.preventDefault();
         },
 
@@ -125,11 +124,13 @@
           else
           {
             // array for storing `inclElm`s that need loading straight away
-            var delayedElms = [];
+            var delayedElms = [],
+                vbBodies = [],
+                lazyElms = [];
 
             this.each(function () {
                 var inclElm = $(this),
-                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg);
+                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg, { url:null }); // disable null - the link should always rule!
                 if ( !inclElm.data( _jsincludes ) ) // prevent unwanted reruns
                 {
                   var foundLinks =  inclElm.is('a') ?
@@ -154,20 +155,35 @@
                         elm = link;
                       }
 
+                      var vBody = $('<div/>')
+                              .bind('VBerror', _errorHandler)
+                              .one('VBloaded', _loadedHandler)
+                              [_virtualBrowser]( config ),
+
+                          jsiData = {
+                              elm:  elm,
+                              link: link,
+                              vb:   vBody,
+                              cfg:  config
+                            };
+
+                      vbBodies.push( vBody[0] );
+
                       // store useful data for easy access
-                      elm.data( _jsincludes, {
-                          link: link,
-                          cfg:  config
-                        });
+                      elm.add(vBody)
+                          .data( _jsincludes, jsiData );
 
                       if ( elm.is( config.lazyLoad||'' ) )
                       {
                         // for lazyloaded elements, set `loadLink` as a click handler
+                        lazyElms.push( elm[0] );
                         elm.bind('click', loadLink);
                       }
                       else if ( !config.delayUnseen  ||  elm.is( config.forceLoad ) )
                       {
-                        loadLink.call( elm[0] );
+                        // NOTE: timeout required since IE will often finish the virtualBrowser ajax request
+                        // before subsequent event-handling assignments (etc.) have had chance to finish...
+                        setTimeout(function(){  loadLink.call( elm[0] );  }, 0);
                       }
                       else
                       {
@@ -186,11 +202,16 @@
               });
             if ( delayedElms.length )
             {
-              loadSeenLinks( delayedElms );
+              // NOTE: timeout required since IE will often finish the virtualBrowser ajax request
+              // before subsequent event-handling assignments (etc.) have had chance to finish...
+              setTimeout(function(){ loadSeenLinks( delayedElms ); }, 0);
               $(window).bind('resize scroll', refreshUnseen);
             }
           }
-          return this;
+          return {
+              vbBodies: $(vbBodies),
+              lazyElms: $(lazyElms)
+            };
         },
 
       // Note: the plugin uses the `_defaultConfig` private variable,
