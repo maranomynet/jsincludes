@@ -59,8 +59,8 @@
               data = inclElm.data(_jsincludes),
               vbBody = data.vb,
               link = data.link,
-              cfg = data.cfg,
-              idSelector = link[0].href.split('#')[1];
+              idSelector = link[0].href.split('#')[1],
+              cfg = vbBody.data(_virtualBrowser).cfg;
 
           cfg.selector = (idSelector  &&  '#'+idSelector)  ||
                           link.attr('data-selectors')  ||
@@ -98,12 +98,13 @@
             unseenElms.push.apply( unseenElms, batch );
             var i = unseenElms.length,
                 stopAt = i - (batch.length || i),
-                elm,
+                elm, cfg,
                 seenElms = [];
             while ( i-- > stopAt )
             {
               elm = $(unseenElms[i]);
-              if ( elm.offset().top  <  winBottom + (elm.data( _jsincludes ).cfg.unseenBuffer||0) )
+              cfg = elm.data( _jsincludes ).vb.data(_virtualBrowser).cfg;
+              if ( elm.offset().top  <  winBottom + (cfg.unseenBuffer||0) )
               {
                 loadLink.call( elm[0] );
                 unseenElms.splice(i,1);
@@ -163,8 +164,7 @@
                           jsiData = {
                               elm:  elm,
                               link: link,
-                              vb:   vBody,
-                              cfg:  config
+                              vb:   vBody
                             };
 
                       vbBodies.push( vBody[0] );
