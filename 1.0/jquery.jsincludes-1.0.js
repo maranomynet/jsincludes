@@ -138,7 +138,7 @@
                                         inclElm.find('a').not( config.noIncl );
                   // loop over the `foundLinks` in each `inclElm`
                   foundLinks.each(function () {
-                          link =  $(this),
+                      var link =  $(this),
                           // elm will contain the `inclElm` relative to this `link` (in certain circumstances this will change)
                           elm = inclElm;
 
