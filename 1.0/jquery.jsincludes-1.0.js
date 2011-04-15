@@ -62,9 +62,9 @@
               idSelector = link[0].href.split('#')[1],
               cfg = vbBody.data(_virtualBrowser).cfg;
 
-          cfg.selector = (idSelector  &&  '#'+idSelector)  ||
-                          link.attr('data-selectors')  ||
-                          cfg.selector;
+          cfg.selector = link.attr('data-selectors')  ||       // data-selectors="" attribute has highest priority
+                          (idSelector  &&  '#'+idSelector)  || // link url #fragment shorthand comes second.
+                          cfg.selector;                         // fall back to the default selector.
           // set focus on the first focusable element within the injected DOM
           // if the load was triggered by a click
           if ( clickEv )
