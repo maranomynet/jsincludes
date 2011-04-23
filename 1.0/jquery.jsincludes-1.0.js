@@ -10,6 +10,9 @@
 // and GPL 2.0 or above (http://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
 // ----------------------------------------------------------------------------------
 //
+// Source & more info:
+//   * http://github.com/maranomynet/jsincludes/
+//
 // Requires:
 //   * jQuery 1.4+
 //   * jQuery.virtualBrowser 1.1+ (http://github.com/maranomynet/virtualbrowser/)
