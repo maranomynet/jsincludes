@@ -23,6 +23,7 @@
 
   var _jsincludes     = 'jsincludes',
       _virtualBrowser = 'virtualBrowser',
+      _disengage      = 'disengage',
 
       // on 'VBerror' remove the dummy virtualbrowser element and "disengage"
       _errorHandler = function (e, request) {
@@ -30,7 +31,7 @@
           {
             $(this)
                 .remove()
-                [_virtualBrowser]('disengage');
+                [_virtualBrowser](_disengage);
           }
         },
 
@@ -41,7 +42,7 @@
               cfg = body.data(_virtualBrowser).cfg,
               dom = request.resultDOM;
 
-          if ( cfg.disengage )
+          if ( cfg[_disengage] )
           {
             body
                 .before( dom ) // NOTE: the VBloaded handlers MUST NOT rely on request.resultDOM being contained within the body
@@ -80,7 +81,7 @@
           data.vb
               .replaceAll( inclElm )
               [_virtualBrowser]( 'load', link );
-          if ( !cfg.disengage ) {
+          if ( !cfg[_disengage] ) {
             // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
             data.vb.one('VBloaded', function (e) {
                 cfg.selector = orgSelector;
@@ -166,6 +167,10 @@
                         // and setting the link itself as standin `inclElm`.
                         elm = link;
                       }
+                      if ( !elm.is( config.recurse ) )
+                      {
+                        config[_disengage] = true;
+                      }
 
                       var vBody = $('<div/>')
                               .bind('VBerror', _errorHandler)
@@ -233,14 +238,14 @@
 
   // global "live" config. extend this object to change default config values retroactively 
   _defaultConfig.prototype = {
-      lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked.
+      lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked. (true === '*')
       noIncl:       '.no-include', // ignore elemetns that match this selector - just throw them away.
       loadingClass: 'jsi-loading', // className to add to elements while loading takes place.
       //delayUnseen:  false,      // when set to true, links positioned below the fold
       unseenBuffer: 100,          // pixel distance below the visible "fold" where elements stop being loaded when "delayUnseen == true"
       forceLoad:    '.forceload',  // target elements that match this selector are loaded immediately, even when `config.delayUnseen == true`
+      recurse:      ''            // target elements that match this selector do *not* instantly disengage `.virtualBrowser()`s recursive loading behaviour (true === '*')
       //setFocus:     false,      // if non-falsy then attempt to use jQuery.fn.setFocus() to set the keyboard focus to the first focusable element.
-      disengage:    true          // default to instantly disengage `.virtualBrowser()`s recursive loading behaviour 
       // ...for other options refer to the jQuery.fn.virtualBrowser() documentation
     };
   // _jsIncl.config.mySetting = 'myValue'; // <--- Extend jQuery.fn.jsIncludes.config to set config values for future invocations.
