@@ -60,14 +60,16 @@
       loadLink = function (clickEv) {
           var inclElm = $(this),
               data = inclElm.data(_jsincludes),
-              vbBody = data.vb,
               link = data.link,
+              vbBody = data.vb,
+              cfg = vbBody.data(_virtualBrowser).cfg,
               idSelector = link[0].href.split('#')[1],
-              cfg = vbBody.data(_virtualBrowser).cfg;
+              orgSelector = cfg.selector;
 
+          // override the virtualbrowser's configured 'selector' option.
           cfg.selector = link.attr('data-selectors')  ||       // data-selectors="" attribute has highest priority
                           (idSelector  &&  '#'+idSelector)  || // link url #fragment shorthand comes second.
-                          cfg.selector;                         // fall back to the default selector.
+                          orgSelector;                          // fall back to the default virtualBrowser selector.
           // set focus on the first focusable element within the injected DOM
           // if the load was triggered by a click
           if ( clickEv )
@@ -78,6 +80,12 @@
           data.vb
               .replaceAll( inclElm )
               [_virtualBrowser]( 'load', link );
+          if ( !cfg.disengage ) {
+            // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
+            data.vb.one('VBloaded', function (e) {
+                cfg.selector = orgSelector;
+              });
+          }
           clickEv  &&  clickEv.preventDefault();
         },
 
@@ -134,7 +142,7 @@
 
             this.each(function () {
                 var inclElm = $(this),
-                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg, { url:null }); // disable null - the link should always rule!
+                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg, { url:null }); // disable the url - the link should always rule!
                 if ( !inclElm.data( _jsincludes ) ) // prevent unwanted reruns
                 {
                   var foundLinks =  inclElm.is('a') ?
