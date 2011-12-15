@@ -24,6 +24,7 @@
   var _jsincludes     = 'jsincludes',
       _virtualBrowser = 'virtualBrowser',
       _disengage      = 'disengage',
+      undefined,
 
       // on 'VBerror' remove the dummy virtualbrowser element and "disengage"
       _errorHandler = function (e, request) {
@@ -58,36 +59,49 @@
         },
 
 
-      loadLink = function (clickEv) {
+      loadLink = function (e) {
           var inclElm = $(this),
-              data = inclElm.data(_jsincludes),
-              link = data.link,
-              vbBody = data.vb,
-              cfg = vbBody.data(_virtualBrowser).cfg,
-              idSelector = link[0].href.split('#')[1],
-              orgSelector = cfg.selector;
-
-          // override the virtualbrowser's configured 'selector' option.
-          cfg.selector = link.attr('data-selectors')  ||       // data-selectors="" attribute has highest priority
-                          (idSelector  &&  '#'+idSelector)  || // link url #fragment shorthand comes second.
-                          orgSelector;                          // fall back to the default virtualBrowser selector.
-          // set focus on the first focusable element within the injected DOM
-          // if the load was triggered by a click
-          if ( clickEv )
+              data = inclElm.data(_jsincludes);
+          if ( data )
           {
-            cfg.setFocus = 1;
-          }
+            var link = data.link,
+                vbBody = data.vb,
+                cfg = vbBody.data(_virtualBrowser).cfg,
+                idSelector = link[0].href.split('#')[1],
+                orgSelector = cfg.selector;
 
-          data.vb
-              .replaceAll( inclElm )
-              [_virtualBrowser]( 'load', link );
-          if ( !cfg[_disengage] ) {
-            // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
-            data.vb.one('VBloaded', function (e) {
-                cfg.selector = orgSelector;
-              });
+            // override the virtualbrowser's configured 'selector' option.
+            cfg.selector = link.attr('data-selectors')  ||       // data-selectors="" attribute has highest priority
+                            (idSelector  &&  '#'+idSelector)  || // link url #fragment shorthand comes second.
+                            orgSelector;                          // fall back to the default virtualBrowser selector.
+            if ( e!==undefined )
+            {
+              // that `e` is present indicates that loadLink was
+              // either triggered by a click event, or the .jsincludes('load') method
+              // in either case we must remove the `inclElm` from the `unseenElms` array
+              unseenElms.splice( $.inArray( inclElm[0], unseenElms), 1);
+              if ( e.target )
+              {
+                // set focus on the first focusable element within the injected DOM
+                // if e is a DOM event (i.e. if the loadLink was triggered by a click)
+                cfg.setFocus = 1;
+                e.preventDefault();
+              }
+              
+            }
+
+            data.vb
+                .replaceAll( inclElm )
+                [_virtualBrowser]( 'load', link );
+
+            if ( !cfg[_disengage] )
+            {
+              // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
+              data.vb.one('VBloaded', function (e) {
+                  cfg.selector = orgSelector;
+                });
+            }
           }
-          clickEv  &&  clickEv.preventDefault();
         },
 
 
@@ -133,6 +147,10 @@
           if ( cfg == 'refresh' )
           {
             refreshUnseen();
+          }
+          else if ( cfg == 'load' )
+          {
+            this.each(loadLink);
           }
           else
           {
@@ -223,11 +241,12 @@
               setTimeout(function(){ loadSeenLinks( delayedElms ); }, 0);
               $(window).bind('resize scroll', refreshUnseen);
             }
+            return {
+                vbBodies: $(vbBodies),
+                lazyElms: $(lazyElms)
+              };
           }
-          return {
-              vbBodies: $(vbBodies),
-              lazyElms: $(lazyElms)
-            };
+          return this;
         },
 
       // Note: the plugin uses the `_defaultConfig` private variable,
