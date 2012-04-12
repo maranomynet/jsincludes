@@ -76,14 +76,15 @@
                             orgSelector;                          // fall back to the default virtualBrowser selector.
             if ( e!==undefined )
             {
-              // that `e` is present indicates that loadLink was
+              // we infer that the presence of `e` indicates that loadLink was
               // either triggered by a click event, or the .jsincludes('load') method
               // in either case we must remove the `inclElm` from the `unseenElms` array
               unseenElms.splice( $.inArray( inclElm[0], unseenElms), 1);
-              if ( e.target )
+              if ( e.target  &&  cfg.setFocus !== false )
               {
-                // set focus on the first focusable element within the injected DOM
                 // if e is a DOM event (i.e. if the loadLink was triggered by a click)
+                // we make focusing the first focusable element within the injected DOM
+                // a default action
                 cfg.setFocus = 1;
                 e.preventDefault();
               }
