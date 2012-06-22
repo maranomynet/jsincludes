@@ -37,7 +37,8 @@
         },
 
       // on 'VBloaded' (unless !cfg.disengage) we immediately move the .resultDOM
-      // to outside the temporary virtualBrowser body element, and detach it form the DOM
+      // to outside the temporary virtualBrowser body element,
+      // and detach the virtualBrowser element form the DOM
       _loadedHandler = function (e, request) {
           var body = $(this),
               cfg = body.data(_virtualBrowser).cfg,
@@ -88,7 +89,7 @@
                 cfg.setFocus = 1;
                 e.preventDefault();
               }
-              
+
             }
 
             data.vb
@@ -109,7 +110,7 @@
       refreshTimeout,
 
       refreshUnseen = function (e) {
-          clearTimeout( refreshTimeout ); 
+          clearTimeout( refreshTimeout );
           refreshTimeout = setTimeout(function(){ loadSeenLinks(); }, _jsIncl.refresh);
         },
 
@@ -256,7 +257,7 @@
       _defaultConfig = _jsIncl.config = function(){};
 
 
-  // global "live" config. extend this object to change default config values retroactively 
+  // global "live" config. extend this object to change default config values retroactively
   _defaultConfig.prototype = {
       lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked. (true === '*')
       noIncl:       '.no-include', // ignore elemetns that match this selector - just throw them away.
