@@ -91,7 +91,7 @@
             }
 
             data.vb
-                .addClass(cfg.loadingClass)
+                .addClass(cfg.firstLoadClass)
                 .replaceAll( inclElm )
                 [_virtualBrowser]( 'load', link );
 
@@ -99,7 +99,7 @@
             {
               // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
               data.vb.one('VBloaded', function (/* e */) {
-                  data.vb.removeClass(cfg.loadingClass);
+                  data.vb.removeClass(cfg.firstLoadClass);
                   cfg.selector = orgSelector;
                 });
             }
@@ -258,7 +258,7 @@
   DefaultConfig.prototype = {
       lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked. (true === '*')
       noIncl:       '.no-include', // ignore elemetns that match this selector - just throw them away.
-      loadingClass: 'jsi-loading', // className to add to elements while loading takes place.
+      firstLoadClass: 'jsi-loading', // className to add to elements while initial loading takes place.
       //delayUnseen:  false,      // when set to true, links positioned below the fold
       unseenBuffer: 100,          // pixel distance below the visible "fold" where elements stop being loaded when "delayUnseen == true"
       forceLoad:    '.forceload',  // target elements that match this selector are loaded immediately, even when `config.delayUnseen == true`
