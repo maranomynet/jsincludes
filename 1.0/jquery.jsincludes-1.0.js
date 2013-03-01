@@ -23,7 +23,7 @@
   var _jsincludes     = 'jsincludes',
       _virtualBrowser = 'virtualBrowser',
       _disengage      = 'disengage',
-      undefined,
+      _undefined,
 
       // on 'VBerror' remove the dummy virtualbrowser element and "disengage"
       _errorHandler = function (e, request) {
@@ -73,7 +73,7 @@
             cfg.selector = link.attr('data-selectors')  ||       // data-selectors="" attribute has highest priority
                             (idSelector  &&  '#'+idSelector)  || // link url #fragment shorthand comes second.
                             orgSelector;                          // fall back to the default virtualBrowser selector.
-            if ( e!==undefined )
+            if ( e!==_undefined )
             {
               // we infer that the presence of `e` indicates that loadLink was
               // either triggered by a click event, or the .jsincludes('load') method
@@ -98,8 +98,8 @@
             if ( !cfg[_disengage] )
             {
               // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
-              data.vb.one('VBloaded', function (e) {
-                  data.vb.removeClass(cfg.loadingClass)
+              data.vb.one('VBloaded', function (/* e */) {
+                  data.vb.removeClass(cfg.loadingClass);
                   cfg.selector = orgSelector;
                 });
             }
@@ -109,7 +109,7 @@
 
       refreshTimeout,
 
-      refreshUnseen = function (e) {
+      refreshUnseen = function (/* e */) {
           clearTimeout( refreshTimeout );
           refreshTimeout = setTimeout(function(){ loadSeenLinks(); }, _jsIncl.refresh);
         },
@@ -121,13 +121,12 @@
           batch = batch || [];
           win = win || $(window);
           var winBottom = win.scrollTop() + win.height();
-          if ( batch.length  ||  winBottom != lastWinBottom )
+          if ( batch.length  ||  winBottom !== lastWinBottom )
           {
             unseenElms.push.apply( unseenElms, batch );
             var i = unseenElms.length,
                 stopAt = i - (batch.length || i),
-                elm, cfg,
-                seenElms = [];
+                elm, cfg;
             while ( i-- > stopAt )
             {
               elm = $(unseenElms[i]);
@@ -143,14 +142,12 @@
         },
 
 
-      lastcfg,
-
       _jsIncl = $.fn[_jsincludes] = function ( cfg ) {
-          if ( cfg == 'refresh' )
+          if ( cfg === 'refresh' )
           {
             refreshUnseen();
           }
-          else if ( cfg == 'load' )
+          else if ( cfg === 'load' )
           {
             this.each(loadLink);
           }
@@ -163,7 +160,7 @@
 
             this.each(function () {
                 var inclElm = $(this),
-                    config = $.extend(new _defaultConfig(), _defaultConfig, cfg, { url:null }); // disable the url - the link should always rule!
+                    config = $.extend(new DefaultConfig(), DefaultConfig, cfg, { url:null }); // disable the url - the link should always rule!
                 if ( !inclElm.data( _jsincludes ) ) // prevent unwanted reruns
                 {
                   var foundLinks =  inclElm.is('a') ?
@@ -177,7 +174,7 @@
 
                       if ( foundLinks.length > 1 )
                       {
-                        config = $.extend(new _defaultConfig(), _defaultConfig, cfg);
+                        config = $.extend(new DefaultConfig(), DefaultConfig, cfg);
                         // for `inclElm`s that contain more than one link
                         // move them outside the original `inclElm`
                         link
@@ -251,14 +248,14 @@
           return this;
         },
 
-      // Note: the plugin uses the `_defaultConfig` private variable,
+      // Note: the plugin uses the `DefaultConfig` private variable,
       // so overwriting/replacing the public `_jsIncl.config` will not work.
       // Extending is the only way to go.
-      _defaultConfig = _jsIncl.config = function(){};
+      DefaultConfig = _jsIncl.config = function(){};
 
 
   // global "live" config. extend this object to change default config values retroactively
-  _defaultConfig.prototype = {
+  DefaultConfig.prototype = {
       lazyLoad:     '.lazyload',   // target elements that match this selector only load when clicked. (true === '*')
       noIncl:       '.no-include', // ignore elemetns that match this selector - just throw them away.
       loadingClass: 'jsi-loading', // className to add to elements while loading takes place.
