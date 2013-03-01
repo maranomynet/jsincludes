@@ -65,8 +65,7 @@
           if ( data )
           {
             var link = data.link,
-                vbBody = data.vb,
-                cfg = vbBody.data(_virtualBrowser).cfg,
+                cfg = data.vb.data(_virtualBrowser).cfg,
                 idSelector = link[0].href.split('#')[1],
                 orgSelector = cfg.selector;
 
@@ -92,6 +91,7 @@
             }
 
             data.vb
+                .addClass(cfg.loadingClass)
                 .replaceAll( inclElm )
                 [_virtualBrowser]( 'load', link );
 
@@ -99,6 +99,7 @@
             {
               // since virtualBrowsing is enabled, reset the .selectors option to it's original state.
               data.vb.one('VBloaded', function (e) {
+                  data.vb.removeClass(cfg.loadingClass)
                   cfg.selector = orgSelector;
                 });
             }
