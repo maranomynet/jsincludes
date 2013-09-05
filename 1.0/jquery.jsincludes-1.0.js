@@ -206,7 +206,7 @@
                       elm.add(vBody)
                           .data( _jsincludes, jsiData );
 
-                      if ( elm.is( config.lazyLoad||'' ) )
+                      if ( config.lazyLoad===true  ||  elm.is( config.lazyLoad||'' ) )
                       {
                         // for lazyloaded elements, set `loadLink` as a click handler
                         lazyElms.push( elm[0] );
