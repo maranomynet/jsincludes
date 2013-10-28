@@ -85,7 +85,7 @@
                 // if e is a DOM event (i.e. if the loadLink was triggered by a click)
                 // we make focusing the first focusable element within the injected DOM
                 // a default action - unless setFocus is explicitly set to false.
-                (cfg.setFocus !== false)  &&  cfg.setFocus = 1;
+                (cfg.setFocus !== false)  &&  (cfg.setFocus = 1);
               }
 
             }
