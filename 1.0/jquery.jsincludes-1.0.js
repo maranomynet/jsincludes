@@ -79,13 +79,13 @@
               // either triggered by a click event, or the .jsincludes('load') method
               // in either case we must remove the `inclElm` from the `unseenElms` array
               unseenElms.splice( $.inArray( inclElm[0], unseenElms), 1);
-              if ( e.target  &&  cfg.setFocus !== false )
+              if ( e.target )
               {
+                e.preventDefault();
                 // if e is a DOM event (i.e. if the loadLink was triggered by a click)
                 // we make focusing the first focusable element within the injected DOM
-                // a default action
-                cfg.setFocus = 1;
-                e.preventDefault();
+                // a default action - unless setFocus is explicitly set to false.
+                (cfg.setFocus !== false)  &&  cfg.setFocus = 1;
               }
 
             }
